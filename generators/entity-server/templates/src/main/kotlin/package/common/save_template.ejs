@@ -71,6 +71,12 @@ if (!viaService) {
             <%= mapsIdRepoInstance %>.findById(<%= otherEntityName %>Id)
                 .ifPresent { <%= asEntity(entityInstance) %>.<%= otherEntityName %> = it }
         }
-        <%_ } _%>
+        <%_ } else { _%>
+        if (<%= instanceName %>.id != null) {
+            <%= entityInstance %>Service.findOne(<%= instanceName %>.id!!).get().apply {
+                <%= instanceName %>.version = version
+            }
+        }
+        <%_ }_%>
         <%= returnPrefix %> <%= entityInstance %>Service.save(<%= instanceName %>)
 <%_ } _%>

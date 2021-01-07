@@ -81,5 +81,5 @@ class UserMapper {
         authoritiesAsString?.filterNotNullTo(mutableSetOf()) ?: mutableSetOf()
     <%_ } _%>
 
-    fun userFromId(id: <% if (databaseType === 'mongodb' || databaseType === 'neo4j' || databaseType === 'couchbase' || databaseType === 'cassandra' || authenticationType === 'oauth2') { %>String<% } else { %>Long<% } %>?) = id?.let { <%= asEntity('User') %>(id = it) }
+    fun userFromId(id: <% if (databaseType === 'mongodb' || databaseType === 'neo4j' || databaseType === 'couchbase' || databaseType === 'cassandra' || authenticationType === 'oauth2') { %>String<% } else { %>String<% } %>?) = id?.let { <%= asEntity('User') %>(id = it) }
 }

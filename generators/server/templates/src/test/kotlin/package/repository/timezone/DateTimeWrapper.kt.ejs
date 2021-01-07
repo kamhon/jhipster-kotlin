@@ -23,6 +23,7 @@ import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.Id
+import org.hibernate.annotations.GenericGenerator;
 <%_ if (!(prodDatabaseType === 'mysql' || prodDatabaseType === 'mariadb')) { _%>
 import javax.persistence.SequenceGenerator
 <%_ } _%>
@@ -41,12 +42,13 @@ import java.time.ZonedDateTime
 class DateTimeWrapper(
     @Id
     <%_ if (prodDatabaseType === 'mysql' || prodDatabaseType === 'mariadb') { _%>
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "system-uuid")
+    @GenericGenerator(name = "system-uuid", strategy = "uuid2")
     <%_ } else { _%>
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     <%_ } _%>
-    var id: Long? = null,
+    var id: String? = null,
 
     @Column(name = "instant")
     var instant: Instant? = null,

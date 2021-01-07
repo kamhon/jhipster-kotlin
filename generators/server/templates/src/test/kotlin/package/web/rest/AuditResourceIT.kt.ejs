@@ -239,10 +239,10 @@ class AuditResourceIT {
     <% if (!reactive) { %>@Throws(Exception::class)<% } %>
     fun testPersistentAuditEventEquals() {
         equalsVerifier(PersistentAuditEvent::class)
-        val auditEvent1 = PersistentAuditEvent(id = <% if (databaseType === 'sql') { %>1L<% } else { %>"id1"<% } %>)
+        val auditEvent1 = PersistentAuditEvent(id = <% if (databaseType === 'sql') { %>"id1"<% } else { %>"id1"<% } %>)
         val auditEvent2 = PersistentAuditEvent(id = auditEvent1.id)
         assertThat(auditEvent1).isEqualTo(auditEvent2)
-        auditEvent2.id = <% if (databaseType === 'sql') { %>2L<% } else { %>"id2"<% } %>
+        auditEvent2.id = <% if (databaseType === 'sql') { %>"id2"<% } else { %>"id2"<% } %>
         assertThat(auditEvent1).isNotEqualTo(auditEvent2)
         auditEvent1.id = null
         assertThat(auditEvent1).isNotEqualTo(auditEvent2)

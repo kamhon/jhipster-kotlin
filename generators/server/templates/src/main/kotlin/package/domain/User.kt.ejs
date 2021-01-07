@@ -83,6 +83,7 @@ import javax.persistence.JoinColumn
 import javax.persistence.JoinTable
 import javax.persistence.ManyToMany
 import javax.persistence.OneToMany
+import org.hibernate.annotations.GenericGenerator;
     <%_ if (!(prodDatabaseType === 'mysql' || prodDatabaseType === 'mariadb')) { _%>
 import javax.persistence.SequenceGenerator
     <%_ } _%>
@@ -134,7 +135,8 @@ class <%= asEntity('User') %> (
     @Id
     <%_ if (!reactive) { _%>
         <%_ if (authenticationType !== 'oauth2' && (prodDatabaseType === 'mysql' || prodDatabaseType === 'mariadb')) { _%>
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "system-uuid")
+    @GenericGenerator(name = "system-uuid", strategy = "uuid2")
         <%_ } else if (authenticationType !== 'oauth2') { _%>
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
@@ -143,7 +145,7 @@ class <%= asEntity('User') %> (
     <%_ if (searchEngine === 'elasticsearch' && authenticationType === 'oauth2') { _%>
     @org.springframework.data.elasticsearch.annotations.Field(type = FieldType.Keyword)
     <%_ } _%>
-    var id: <% if (authenticationType === 'oauth2') { %>String?<% } else { %>Long?<% } %> = null,
+    var id: <% if (authenticationType === 'oauth2') { %>String?<% } else { %>String?<% } %> = null,
     <%_ } else if (databaseType === 'neo4j') { _%>
     @Id
     <%_ if (authenticationType !== 'oauth2') { _%>
@@ -367,12 +369,13 @@ class <%= asEntity('User') %> (
     var persistentTokens: MutableSet<PersistentToken> = mutableSetOf(),<% } %>
 <%_ if (databaseType === 'sql' || databaseType === 'mongodb' || databaseType === 'couchbase') { _%>
 
+    version: Long? = null,
     createdBy: String? = null,
     createdDate: Instant? = Instant.now(),
     lastModifiedBy: String? = null,
     lastModifiedDate: Instant? = Instant.now()
 <%_ } _%>
-) : <% if (databaseType === 'sql' || databaseType === 'mongodb' || databaseType === 'neo4j' || databaseType === 'couchbase') { %>AbstractAuditingEntity(createdBy, createdDate, lastModifiedBy, lastModifiedDate), <% } %>Serializable {
+) : <% if (databaseType === 'sql' || databaseType === 'mongodb' || databaseType === 'neo4j' || databaseType === 'couchbase') { %>AbstractAuditingEntity(version, createdBy, createdDate, lastModifiedBy, lastModifiedDate), <% } %>Serializable {
 <%_ if (databaseType === 'couchbase') { _%>
 
     @IdPrefix
@@ -405,6 +408,7 @@ class <%= asEntity('User') %> (
         resetDate: Instant?<% if (databaseType === 'sql' || databaseType === 'mongodb' || databaseType === 'couchbase') { %>,<% } %>
     <%_ } _%>
     <%_ if (databaseType === 'sql' || databaseType === 'mongodb' || databaseType === 'couchbase') { _%>
+        version: Long?,
         createdBy: String?,
         createdDate: Instant?,
         lastModifiedBy: String?,

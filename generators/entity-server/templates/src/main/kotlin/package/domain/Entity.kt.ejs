@@ -91,6 +91,7 @@ import org.neo4j.springframework.data.core.schema.Relationship
 <%_ } if (databaseType === 'sql') { _%>
 
 import javax.persistence.*
+import org.hibernate.annotations.GenericGenerator;
 <%_ } if (validation) { _%>
 import javax.validation.constraints.*
 <%_ } _%>
@@ -99,12 +100,11 @@ import javax.validation.constraints.*
 import org.springframework.data.elasticsearch.annotations.FieldType
 <%_ } _%>
 import java.io.Serializable
+import java.time.Instant
 <%_ if (fieldsContainBigDecimal === true) { _%>
 import java.math.BigDecimal
 <%_ } if (fieldsContainBlob && databaseType === 'cassandra') { _%>
 import java.nio.ByteBuffer
-<%_ } if (fieldsContainInstant === true) { _%>
-import java.time.Instant
 <%_ } if (fieldsContainLocalDate === true) { _%>
 import java.time.LocalDate
 <%_ } if (fieldsContainZonedDateTime === true) { _%>
@@ -154,12 +154,13 @@ import org.springframework.data.couchbase.core.mapping.id.GenerationStrategy.UNI
     <%_ } if (searchEngine === 'elasticsearch') { _%>
 @org.springframework.data.elasticsearch.annotations.Document(indexName = "<%= entityInstance.toLowerCase() %>")
     <%_ } _%>
-data class <%= asEntity(entityClass) %>(
+class <%= asEntity(entityClass) %>(
     <%_ if (!embedded) { _%>
     @Id
         <%_ if (databaseType === 'sql' && isUsingMapsId === false) { _%>
             <%_ if (prodDatabaseType === 'mysql' || prodDatabaseType === 'mariadb') { _%>
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "system-uuid")
+    @GenericGenerator(name = "system-uuid", strategy = "uuid2")
             <%_ }  else { _%>
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
@@ -194,7 +195,8 @@ for (idx in fields) {
     const fieldName = fields[idx].fieldName;
     const fieldNameUnderscored = fields[idx].fieldNameUnderscored;
     const fieldNameAsDatabaseColumn = fields[idx].fieldNameAsDatabaseColumn;
-    const comma = (parseInt(idx, 10) === (fields.length - 1) && relationshipLength < 0 ) ?  '' : ',';
+    // const comma = (parseInt(idx, 10) === (fields.length - 1) && relationshipLength < 0 ) ?  '' : ',';
+    const comma = ','; // always have comma
     if (fieldValidate === true) {
         if (fieldValidateRules.includes('required')) {
             required = true;
@@ -220,7 +222,7 @@ for (idx in fields) {
         if (['Instant', 'ZonedDateTime', 'LocalDate', 'Duration'].includes(fieldType)) { _%>
     @Column(name = "<%-fieldNameAsDatabaseColumn %>"<% if (required) { %>, nullable = false<% } %><% if (unique) { %>, unique = true<% } %>)
         <%_ } else if (fieldType === 'BigDecimal') { _%>
-    @Column(name = "<%-fieldNameAsDatabaseColumn %>", precision = 21, scale = 2<% if (required) { %>, nullable = false<% } %><% if (unique) { %>, unique = true<% } %>)
+    @Column(name = "<%-fieldNameAsDatabaseColumn %>", precision = 65, scale = 20<% if (required) { %>, nullable = false<% } %><% if (unique) { %>, unique = true<% } %>)
         <%_ } else if (fieldType === 'UUID' && ['mysql', 'mariadb'].includes(prodDatabaseType)) { _%>
     @Type(type = "uuid-char")
     @Column(name = "<%-fieldNameAsDatabaseColumn %>", length = 36<% if (required) { %>, nullable = false<% } %><% if (unique) { %>, unique = true<% } %>)
@@ -271,7 +273,8 @@ for (idx in fields) {
         const otherEntityNameCapitalized = relationships[idx].otherEntityNameCapitalized;
         const ownerSide = relationships[idx].ownerSide || false;
         const isUsingMapsId = relationships[idx].useJPADerivedIdentifier;
-        const comma = parseInt(idx,10) === relationshipLength ?  '' : ',';
+        // const comma = parseInt(idx,10) === relationshipLength ?  '' : ',';
+        const comma = ','; // always have comma
         if (otherEntityRelationshipName) {
             mappedBy = otherEntityRelationshipName.charAt(0).toLowerCase() + otherEntityRelationshipName.slice(1)
         }
@@ -280,7 +283,7 @@ for (idx in fields) {
         if (embedded && !otherEntityIsEmbedded && ownerSide === false) {
           continue;
         }
-        
+
         if (typeof relationships[idx].javadoc != 'undefined') { _%>
 <%- formatAsFieldJavadoc(relationships[idx].javadoc) %>
             <%_ if (!hasDto) { _%>
@@ -396,8 +399,13 @@ for (idx in fields) {
 
     <%_ }
     } _%>
+    version: Long? = null,
+    createdBy: String? = null,
+    createdDate: Instant? = Instant.now(),
+    lastModifiedBy: String? = null,
+    lastModifiedDate: Instant? = Instant.now()
     // jhipster-needle-entity-add-field - JHipster will add fields here
-) : Serializable {
+) : AbstractAuditingEntity(version, createdBy, createdDate, lastModifiedBy, lastModifiedDate), Serializable {
 <%_ if (databaseType === 'couchbase' && !embedded) { _%>
 
     @Suppress("unused")

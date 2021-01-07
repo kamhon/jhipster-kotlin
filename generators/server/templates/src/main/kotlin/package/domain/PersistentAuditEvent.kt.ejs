@@ -53,6 +53,7 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.JoinColumn
 import javax.persistence.MapKeyColumn
+import org.hibernate.annotations.GenericGenerator;
         <%_ if (!(prodDatabaseType === 'mysql' || prodDatabaseType === 'mariadb')) { _%>
 import javax.persistence.SequenceGenerator
         <%_ } _%>
@@ -96,14 +97,15 @@ data class PersistentAuditEvent(
     <%_ if (databaseType === 'sql') { _%>
         <%_ if (!reactive) { _%>
             <%_ if (prodDatabaseType === 'mysql' || prodDatabaseType === 'mariadb') { _%>
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "system-uuid")
+    @GenericGenerator(name = "system-uuid", strategy = "uuid2")
             <%_ }  else { _%>
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
             <%_ } _%>
         <%_ } _%>
     @Column(<% if (!reactive) { %>name = <% } %>"event_id")
-    var id: Long? = null,
+    var id: String? = null,
     <%_ } else { _%>
         <%_ if (databaseType === 'couchbase') { _%>
     @GeneratedValue(strategy = UNIQUE, delimiter = ID_DELIMITER)
@@ -139,7 +141,7 @@ data class PersistentAuditEvent(
     @Property("event_type")
     <%_ } _%>
     var auditEventType: String? = null,
-    
+
     <%_ if (databaseType === 'sql') { _%>
         <%_ if (!reactive) { _%>
     @ElementCollection
@@ -160,9 +162,9 @@ data class PersistentAuditEvent(
 <%_ if (databaseType === 'sql' && reactive) { _%>
     @PersistenceConstructor
     constructor(
-        id: Long?, 
-        principal: String?, 
-        auditEventDate: Instant?, 
+        id: Long?,
+        principal: String?,
+        auditEventDate: Instant?,
         auditEventType: String?
     ): this(id, principal, auditEventDate, auditEventType, mutableMapOf<String, String?>())
 <%_ } _%>

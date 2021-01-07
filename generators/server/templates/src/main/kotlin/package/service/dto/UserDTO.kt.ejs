@@ -36,7 +36,7 @@ import java.time.Instant
  * A DTO representing a user, with his authorities.
  */
 open class <%= asDto('User') %>(
-    var id: <% if (databaseType === 'mongodb' || databaseType === 'couchbase' || databaseType === 'neo4j' || databaseType === 'cassandra' || authenticationType === 'oauth2') { %>String<% } else { %>Long<% } %>? = null,
+    var id: <% if (databaseType === 'mongodb' || databaseType === 'couchbase' || databaseType === 'neo4j' || databaseType === 'cassandra' || authenticationType === 'oauth2') { %>String<% } else { %>String<% } %>? = null,
 
     @field:NotBlank
     @field:Pattern(regexp = LOGIN_REGEX)
